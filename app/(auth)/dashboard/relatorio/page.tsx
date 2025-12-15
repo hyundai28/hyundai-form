@@ -3,7 +3,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FileText, DollarSign, ListChecks, Download } from "lucide-react";
+import {
+  FileText,
+  DollarSign,
+  ListChecks,
+  Download,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,8 +24,9 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 
-import { fetchDashboardData, DashboardData } from "@/actions/fetchNotasFiscais";
+import { fetchDashboardData } from "@/actions/fetchNotasFiscais";
 import formatCurrency from "@/utils/converters";
+import { DashboardData } from "@/types/notas_banco_schema";
 
 // --- Configuração Inicial ---
 const initialData: DashboardData = {
@@ -45,6 +53,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [startDate, setStartDate] = useState(firstDay);
   const [endDate, setEndDate] = useState(today);
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+
+  const toggleRow = (id: string) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -81,41 +97,58 @@ export default function DashboardPage() {
   const exportToCSV = () => {
     if (data.items.length === 0) return;
 
-    // Cabeçalho usa nomes de campos amigáveis
     const headers = [
-      "ID",
+      "Dealer Code",
       "N NF",
       "N OS",
       "Data",
       "Tipo Venda",
+      "Codigo Peca",
+      "Valor Peca (R$)",
       "Valor NF (R$)",
-      "N OS Franquia",
-      "N NF Franquia",
-      "Valor Franquia (R$)",
     ];
 
-    const csvRows = data.items.map((item) =>
-      [
-        item.id,
-        item.numeroNF,
-        item.ordemServico,
-        item.dataNF,
-        item.tipoDeVenda,
-        // Valor NF: Usa o valor formatado (ex: 1234,56)
-        item.valorNF,
-        item.numOSFranquia || "",
-        item.numNFFranquia || "",
-        item.valorFranquia || "0,00",
-      ].join(";")
-    );
+    const csvRows = data.items.flatMap((item) => {
+      // Se não tiver peças, ainda exporta a NF
+      if (!item.pecas || item.pecas.length === 0) {
+        return [
+          [
+            item.dealerCode,
+            item.numeroNF,
+            item.ordemServico,
+            item.dataNF,
+            item.tipoDeVenda,
+            "",
+            "",
+            item.valorNF,
+          ].join(";"),
+        ];
+      }
+
+      // Explode uma linha por peça
+      return item.pecas.map((peca) =>
+        [
+          item.dealerCode,
+          item.numeroNF,
+          item.ordemServico,
+          item.dataNF,
+          item.tipoDeVenda,
+          peca.codigo,
+          peca.valor,
+          item.valorNF,
+        ].join(";")
+      );
+    });
 
     const csvContent = [headers.join(";"), ...csvRows].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `relatorio_nf_${startDate}_a_${endDate}.csv`);
+
+    link.href = url;
+    link.download = `relatorio_nf_com_pecas_${startDate}_a_${endDate}.csv`;
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -234,6 +267,7 @@ export default function DashboardPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead></TableHead>
                 <TableHead>Dealercode</TableHead>
                 <TableHead>Nº NF</TableHead>
                 <TableHead>Nº OS</TableHead>
@@ -246,24 +280,77 @@ export default function DashboardPage() {
             </TableHeader>
             <TableBody>
               {data.items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.dealerCode}</TableCell>
-                  <TableCell className="font-medium">{item.numeroNF}</TableCell>
-                  <TableCell>{item.ordemServico}</TableCell>
-                  <TableCell>{item.dataNF}</TableCell>
-                  <TableCell>{item.tipoDeVenda}</TableCell>
-                  {/* Exibir o número da OS da franquia (ou vazio) */}
-                  <TableCell>{item.numOSFranquia || "-"}</TableCell>
-                  <TableCell className="text-right">
-                    {formatCurrency(item.valorNF)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {/* Exibir o valor da franquia (ou vazio) */}
-                    {item.valorFranquia
-                      ? formatCurrency(item.valorFranquia)
-                      : "-"}
-                  </TableCell>
-                </TableRow>
+                <>
+                  {/* Linha principal da NF */}
+                  <TableRow
+                    key={item.id}
+                    className="cursor-pointer hover:bg-slate-50"
+                    onClick={() => toggleRow(item.id)}
+                  >
+                    <TableCell className="w-8 text-center">
+                      {item.pecas?.length > 0 ? (
+                        expandedRows[item.id] ? (
+                          <ChevronUp />
+                        ) : (
+                          <ChevronDown />
+                        )
+                      ) : (
+                        ""
+                      )}
+                    </TableCell>
+
+                    <TableCell className="font-medium">
+                      {item.dealerCode}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {item.numeroNF}
+                    </TableCell>
+                    <TableCell>{item.ordemServico}</TableCell>
+                    <TableCell>{item.dataNF}</TableCell>
+                    <TableCell>{item.tipoDeVenda}</TableCell>
+                    <TableCell>{item.numOSFranquia || "-"}</TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(item.valorNF)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {item.valorFranquia
+                        ? formatCurrency(item.valorFranquia)
+                        : "-"}
+                    </TableCell>
+                  </TableRow>
+
+                  {/* Linha expandida com as peças */}
+                  {expandedRows[item.id] && item.pecas?.length > 0 && (
+                    <TableRow className="bg-slate-50">
+                      <TableCell colSpan={9}>
+                        <div className="p-3">
+                          <p className="text-sm font-semibold mb-2">Peças</p>
+
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Código</TableHead>
+                                <TableHead className="text-right">
+                                  Valor (R$)
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {item.pecas.map((peca) => (
+                                <TableRow key={peca.id}>
+                                  <TableCell>{peca.codigo}</TableCell>
+                                  <TableCell className="text-right">
+                                    {formatCurrency(peca.valor)}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
               ))}
             </TableBody>
           </Table>

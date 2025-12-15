@@ -2,67 +2,17 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { supabase_server } from "@/lib/supabase_server";
-
-/* ======================================================
-   TIPOS
-====================================================== */
+import {
+  DashboardData,
+  NotaFiscalDashboardItem,
+  NotaFiscalDB,
+} from "@/types/notas_banco_schema";
 
 /** Filtros do dashboard */
 interface DashboardFilters {
   startDate?: string;
   endDate?: string;
 }
-
-/** Representa exatamente a tabela do Supabase (snake_case) */
-interface NotaFiscalDB {
-  id: string;
-
-  ordem_servico: string;
-  numero_nf: string;
-  data_nf: string;
-
-  valor_nf: number;
-
-  tipo_de_venda: string;
-
-  num_os_franquia: string | null;
-  num_nf_franquia: string | null;
-  valor_franquia: number | null;
-
-  dealer_code: string;
-}
-
-/** Item já transformado para o frontend (camelCase) */
-export interface NotaFiscalDashboardItem {
-  id: string;
-
-  ordemServico: string;
-  numeroNF: string;
-  dataNF: string;
-
-  tipoDeVenda: string;
-
-  valorNF: string;        // exibição: "1.234,56"
-  valorNFFloat: number;   // cálculo
-
-  numOSFranquia?: string;
-  numNFFranquia?: string;
-  valorFranquia?: string;
-
-  dealerCode: string;
-}
-
-/** Retorno final do dashboard */
-export interface DashboardData {
-  items: NotaFiscalDashboardItem[];
-  totalValue: number;
-  averageValue: number;
-  count: number;
-}
-
-/* ======================================================
-   ACTION
-====================================================== */
 
 export async function fetchDashboardData(
   filters: DashboardFilters
@@ -74,7 +24,7 @@ export async function fetchDashboardData(
     return { error: "Usuário não autenticado." };
   }
 
-  /* ---------- 2. Query ---------- */
+  /* ---------- 2. Query com JOIN em nf_pecas ---------- */
   let query = supabase_server
     .from("notas_fiscais")
     .select(
@@ -88,7 +38,12 @@ export async function fetchDashboardData(
         num_os_franquia,
         num_nf_franquia,
         valor_franquia,
-        dealer_code
+        dealer_code,
+        nf_pecas (
+          id,
+          codigo,
+          valor
+        )
       `
     )
     .order("data_nf", { ascending: false });
@@ -130,6 +85,14 @@ export async function fetchDashboardData(
       : undefined,
 
     dealerCode: item.dealer_code,
+
+    // ✅ peças vindas da tabela nf_pecas
+    pecas: (item.nf_pecas ?? []).map((peca) => ({
+      id: peca.id,
+      codigo: peca.codigo,
+      valor: peca.valor.toFixed(2).replace(".", ","),
+      valorFloat: peca.valor,
+    })),
   }));
 
   /* ---------- 4. Agregações ---------- */
