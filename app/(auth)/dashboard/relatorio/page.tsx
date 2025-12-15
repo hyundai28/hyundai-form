@@ -84,13 +84,13 @@ export default function DashboardPage() {
     // Cabeçalho usa nomes de campos amigáveis
     const headers = [
       "ID",
-      "Nº NF",
-      "Nº OS",
+      "N NF",
+      "N OS",
       "Data",
       "Tipo Venda",
       "Valor NF (R$)",
-      "Nº OS Franquia",
-      "Nº NF Franquia",
+      "N OS Franquia",
+      "N NF Franquia",
       "Valor Franquia (R$)",
     ];
 
@@ -234,6 +234,7 @@ export default function DashboardPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Dealercode</TableHead>
                 <TableHead>Nº NF</TableHead>
                 <TableHead>Nº OS</TableHead>
                 <TableHead>Data</TableHead>
@@ -246,6 +247,7 @@ export default function DashboardPage() {
             <TableBody>
               {data.items.map((item) => (
                 <TableRow key={item.id}>
+                  <TableCell className="font-medium">{item.dealerCode}</TableCell>
                   <TableCell className="font-medium">{item.numeroNF}</TableCell>
                   <TableCell>{item.ordemServico}</TableCell>
                   <TableCell>{item.dataNF}</TableCell>
