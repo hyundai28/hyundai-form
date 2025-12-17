@@ -58,6 +58,7 @@ export function NFForm() {
       numOSFranquia: "",
       valorFranquia: "",
       numNFFranquia: "",
+      chassi: "",
     },
   });
 
@@ -377,6 +378,19 @@ export function NFForm() {
                             }}
                             placeholder="R$ 0,00"
                           />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="chassi"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Chassi do Veículo</FormLabel>
+                        <FormControl>
+                          <Input maxLength={17} placeholder="Digite o chassi" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

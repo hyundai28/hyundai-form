@@ -35,6 +35,10 @@ export const formSchema = z
     valorFranquia: z.string().optional(), // Assumindo opcional, ajuste e use o formato de moeda se necessário
     numNFFranquia: z.string().optional(), // Assumindo opcional
     tipoDeVenda: z.string().min(1, { message: "Selecione o Tipo de Venda." }),
+    chassi: z
+      .string()
+      .max(17, "O Chassi deve ter no máximo 17 caracteres")
+      .optional(),
   })
   .refine(
     (data) => {
@@ -51,4 +55,4 @@ export const formSchema = z
     }
   );
 
-  export type FormSchemaType = z.infer<typeof formSchema>;
+export type FormSchemaType = z.infer<typeof formSchema>;

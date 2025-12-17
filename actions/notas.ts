@@ -56,6 +56,7 @@ export async function createNotaFiscal(formData: FormPayload) {
     num_os_franquia: values.numOSFranquia || null,
     valor_franquia: valorFranquia_float,
     num_nf_franquia: values.numNFFranquia || null,
+    chassi: values.chassi || null,
   };
 
   // 6. Inserir na tabela Principal (`notas_fiscais`)
