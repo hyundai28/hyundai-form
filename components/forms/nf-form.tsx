@@ -390,13 +390,21 @@ export function NFForm() {
                       <FormItem>
                         <FormLabel>Chassi do Veículo</FormLabel>
                         <FormControl>
-                          <Input maxLength={17} placeholder="Digite o chassi" {...field} />
+                          <Input
+                            className="uppercase"
+                            maxLength={17}
+                            placeholder="Digite o chassi"
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e.target.value.toUpperCase());
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <div /> {/* Placeholder para alinhamento */}
+                  <div />
                 </div>
                 <Separator />
               </>

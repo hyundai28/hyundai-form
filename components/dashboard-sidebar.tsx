@@ -65,7 +65,7 @@ export function DashboardSidebar({ isAdmin }: DashboardSidebarProps) {
         <div className="p-6 border-b border-slate-700 flex items-center justify-center">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center font-bold text-white">
-              D
+              H
             </div>
             <Link href="/">
               <span className="font-bold text-lg">Dashboard</span>

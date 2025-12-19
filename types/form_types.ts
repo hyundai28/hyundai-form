@@ -31,9 +31,9 @@ export const formSchema = z
       )
       .min(1, "Adicione pelo menos uma peça"),
 
-    numOSFranquia: z.string().optional(), // Assumindo opcional, ajuste para min(1) se for obrigatório
-    valorFranquia: z.string().optional(), // Assumindo opcional, ajuste e use o formato de moeda se necessário
-    numNFFranquia: z.string().optional(), // Assumindo opcional
+    numOSFranquia: z.string().optional(),
+    valorFranquia: z.string().optional(),
+    numNFFranquia: z.string().optional(),
     tipoDeVenda: z.string().min(1, { message: "Selecione o Tipo de Venda." }),
     chassi: z
       .string()
@@ -42,16 +42,14 @@ export const formSchema = z
   })
   .refine(
     (data) => {
-      // Se o tipo de venda for 'Franquia', verifique se os campos de franquia estão preenchidos
       if (data.tipoDeVenda === "Franquia") {
-        // Exemplo: Torna o valorFranquia obrigatório apenas para Franquia
         return data.valorFranquia && data.valorFranquia.length > 0;
       }
-      return true; // Se não for Franquia, a validação passa.
+      return true;
     },
     {
       message: "O Valor Franquia é obrigatório para vendas do tipo Franquia.",
-      path: ["valorFranquia"], // Campo ao qual a mensagem de erro será anexada
+      path: ["valorFranquia"],
     }
   );
 

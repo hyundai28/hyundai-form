@@ -31,6 +31,7 @@ export async function fetchDashboardData(
       `
         id,
         ordem_servico,
+        chassi,
         numero_nf,
         data_nf,
         valor_nf,
@@ -74,7 +75,7 @@ export async function fetchDashboardData(
     dataNF: item.data_nf,
 
     tipoDeVenda: item.tipo_de_venda,
-
+    chassi: item.chassi,
     valorNF: item.valor_nf.toFixed(2).replace(".", ","),
     valorNFFloat: item.valor_nf,
 

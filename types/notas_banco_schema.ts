@@ -7,14 +7,16 @@ export interface NotaFiscalDashboardItem {
 
   tipoDeVenda: string;
 
-  valorNF: string; // formatado "1.234,56"
-  valorNFFloat: number; // para cálculo
+  valorNF: string;
+  valorNFFloat: number;
 
   numOSFranquia?: string;
   numNFFranquia?: string;
   valorFranquia?: string;
 
   dealerCode: string;
+  chassi?: string | null;
+
   pecas: {
     id: string;
     codigo: string;
@@ -33,6 +35,7 @@ export interface DashboardData {
 export interface NotaFiscalDB {
   id: string;
   ordem_servico: string;
+  chassi: string | null;
   numero_nf: string;
   data_nf: string;
   valor_nf: number;
